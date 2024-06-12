@@ -1,0 +1,11 @@
+services:
+  dns:
+    image: ubuntu:rust
+    working_dir: /rust
+    volumes:
+      - .:/rust
+    tty: true
+    ports:
+      - 3620:80
+      - 3621:81
+      - 3622:8080
