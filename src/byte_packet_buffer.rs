@@ -27,7 +27,7 @@ impl BytePacketBuffer {
 
     pub fn read(&mut self) -> Result<u8,String> {
         if self.pos >= 512 {
-            return Err("read: End of buffer".into());
+            return Err("BytePacketBuffer read: End of buffer".into());
         }
         let res = self.buf[self.pos];
         self.pos += 1;
@@ -36,15 +36,14 @@ impl BytePacketBuffer {
 
     pub fn get(&mut self, pos: usize) -> Result<u8,String> {
         if pos >= 512 {
-            println!("pos: {}",pos);
-            return Err("get: End of buffer".into());
+            return Err("BytePacketBuffer get: End of buffer".into());
         }
         Ok(self.buf[pos])
     }
 
     pub fn get_range(&mut self, start: usize, len: usize) -> Result<&[u8],String> {
         if start + len >= 512 {
-            return Err("get_range: End of buffer".into());
+            return Err("BytePacketBuffer get_range: End of buffer".into());
         }
         Ok(&self.buf[start..start + len as usize])
     }
@@ -67,7 +66,7 @@ impl BytePacketBuffer {
         let mut delim = "";
         loop {
             if jumps_performed > max_jumps {
-                return Err(format!("Limit of {} jumps exceed", max_jumps));
+                return Err(format!("BytePacketBuffer read_qname: Limit of {} jumps exceed", max_jumps));
             }
 
             let len = self.get(pos)?;
@@ -100,4 +99,46 @@ impl BytePacketBuffer {
         }
         Ok(())
     }    
+
+    pub fn write(&mut self, val: u8) -> Result<(), String>{
+        if self.pos >= 512 {
+            return Err("BytePacketBuffer write: Error of buffer".to_string());
+        }
+        self.buf[self.pos] = val;
+        self.pos += 1;    
+        Ok(())
+    }
+
+    pub fn write_u8(&mut self, val: u8) -> Result<(), String>{
+        self.write(val)
+    }
+    
+    pub fn write_u16(&mut self, val: u16) -> Result<(), String>{
+        self.write(( val >> 8) as u8 )?;
+        self.write(( val & 0xFF) as u8 )?;
+        Ok(())
+    }
+    
+    pub fn write_u32(&mut self, val: u32) -> Result<(), String>{
+        self.write(((val >> 24) & 0xFF) as u8)?;
+        self.write(((val >> 16) & 0xFF) as u8)?;
+        self.write(((val >> 8) & 0xFF) as u8)?;
+        self.write(((val >> 0) & 0xFF) as u8)?;
+        Ok(())
+    }
+    
+    pub fn write_qname(&mut self, qname: &str) -> Result<(),String> {
+        for label in qname.split(".") {
+            let len = label.len();
+            if len > 0x3f {
+                return Err("BytePacketBuffer write_qname: Error of buffer".to_string());
+            }
+            self.write_u8(len as u8)?;
+            for b in label.as_bytes() {
+                self.write_u8(*b)?;
+            }
+        }
+        self.write_u8(0)?;
+        Ok(())
+    }
 }

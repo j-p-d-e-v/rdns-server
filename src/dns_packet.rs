@@ -1,5 +1,9 @@
 use crate::{
-    byte_packet_buffer::BytePacketBuffer, dns_header::DnsHeader, dns_question::DnsQuestion, dns_record::DnsRecord, query_type::{self, QueryType}
+    byte_packet_buffer::BytePacketBuffer,
+    dns_header::DnsHeader, 
+    dns_question::DnsQuestion, 
+    dns_record::DnsRecord, 
+    query_type::QueryType
 };
 
 #[derive(Clone, Debug)]
@@ -47,5 +51,26 @@ impl DnsPacket {
             result.resources.push(rec);
         }
         Ok(result)
+    }
+    
+    pub fn write(&mut self, buffer: &mut BytePacketBuffer) -> Result<(), String> {
+        self.header.questions = self.questions.len() as u16;
+        self.header.answers = self.answers.len() as u16;
+        self.header.authoritative_entries = self.authorities.len() as u16;
+        self.header.resource_entries = self.resources.len() as u16;
+        self.header.write(buffer)?;
+        for question in &self.questions {
+            question.write(buffer)?;
+        }
+        for rec in &self.answers {
+            rec.write(buffer)?;
+        }
+        for rec in &self.authorities {
+            rec.write(buffer)?;
+        }
+        for rec in &self.resources {
+            rec.write(buffer)?;
+        }
+        Ok(())
     }
 }
