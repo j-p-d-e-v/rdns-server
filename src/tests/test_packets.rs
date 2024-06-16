@@ -2,8 +2,8 @@
 
 
 
-#[ignore]
 #[test]
+#[ignore]
 fn test_load_response_packet() {
     use crate::byte_packet_buffer::BytePacketBuffer;
     use crate::dns_packet::DnsPacket;
@@ -38,8 +38,8 @@ fn test_dns_stub_resolver(){
         dns_question::DnsQuestion
     };
 
-    let qname = "google.com";
-    let qtype = QueryType::A;
+    let qname = "yahoo.com";
+    let qtype = QueryType::MX;
     let server = ("8.8.8.8",53);
 
     let socket = UdpSocket::bind(("0.0.0.0",43210)).unwrap();
